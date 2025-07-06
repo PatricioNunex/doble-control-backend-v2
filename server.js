@@ -184,6 +184,27 @@ app.post("/usuarios/cambiar-password", authenticate, async (req, res) => {
     }
 });
 
+// Cambio de contraseña en primer login (sin pedir contraseña actual)
+app.post("/usuarios/primer-cambio-password", authenticate, async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        const user = req.user;
+
+        if (!user.firstLogin) {
+            return res.status(400).json({ error: "Esta ruta solo puede usarse en el primer login" });
+        }
+
+        user.password = newPassword;
+        user.firstLogin = false;
+        await user.save();
+
+        res.json({ message: "Contraseña actualizada correctamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error en el servidor" });
+    }
+});
+
+
 // Ruta para obtener usuarios (solo admin)
 app.get("/usuarios", authenticate, isAdmin, async (req, res) => {
     try {
